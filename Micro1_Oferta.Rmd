@@ -1,0 +1,130 @@
+---
+title: 'Microeconomía con R: Curva de Oferta'
+author: "Raymundo Velázquez Díaz"
+date: "2025-09-15"
+output: pdf_document
+---
+
+# Concepto.
+
+Diversos autores tienen su propia forma de interprearlo:
+
+- Parkin & Loria (2010). "La cantidad de un bien o servicio es la suma de los productores que planean vender durante un período dado a un precio específico."
+
+- Pindyck & Rubinfeld (2009). "Relación entre la cantidad que están dispuestos a vender los productores de un bien y su precio."
+
+- Case, et al. (2012). "La cantidad de un producto en particular que una empresa estaría dispuesta a ofrecer para su venta a un precio específico durante un período determinado."
+
+Todos estos autores coinciden en la relación existente entre la cantidad *ofrecida* por productores o empresas a un determinado precio. Con ello, la ley de la oferta establece que mientras mayor sea el precio, si los demás factores permanecen constantes, mayor será la cantidad ofrecida.
+
+Por lo que **un aumento en los precios conduce a un incremento en la cantidad ofertada y viceversa**, por lo que, al existir una **relación positiva entre precio y cantidad** podemos concluir que la curva tendrá una **pendiente positiva**.
+
+Esto ocurre porque precios más altos generan mayores beneficios o rentabilidades, incentivando a los productores y empresas a expandir la producción con la finalidad de entrar al mercado y tener una mayor asignación de recursos.
+
+# Curva de Oferta analizada matemáticamente.
+
+Sea la función de producción la siguiente:
+
+$$S(Q) = a + bQ + cQ^{2}$$
+Dónde $q$ es la Cantidad ofertada y dado la relación entre cantidad ofrecida y el precio, podemos expresar la siguiente ecuación:
+
+$$Q_{s} = Q_{s}(P)$$
+Dónde:
+
+ - $Q_{s}$ es la Cantidad Ofecrecida/Ofertada.
+ - $P$ es el Precio.
+
+Si $P = S(Q)$, podemos invertir la función de la siguiente manera $Q = S^{-1}(P)$, por lo que la función quedaría:
+
+$$Q(P) = S^{-1}Q$$
+
+Si derivamos con respecto a $P$ obtenemos:
+
+$$
+\frac{dP}{dQ}= \frac{1}{ S'(Q)}
+$$
+Esta condición no indica que $S'(Q) >0$, por lo que $\frac{dQ}{dP} >0$ concluyendo la existencia de la relación positiva entre Precio y Cantidad Ofertada.
+
+Ahora, si obtenemos la segunda derivada según lo siguiente:
+
+- Ecuación original: $$S(Q) = a + bQ + cQ^{2}$$
+- Primera derivada: $$S'(Q) = b + 2cQ$$
+- Segunda derivada: $$S''(Q) = 2c$$
+
+Encontramos que $S''(Q) > 0$ , por lo que $\frac{d^{2}Q}{dP^{2}} <0$
+
+
+Se hace mención que esta función tiene pendiente positiva, indicando que un aumento de la variable independiente $(P)$ hace que aumente la Cantidad $Q_{s}$, concluimos que la curva es cóncava, es decir, que el aumento de la oferta se vuelve menos sensible a aumentos del precio, reflejando la teoría de los **costos marginales crecientes**.
+
+# Grafica en R
+
+Con la finalidad de revisar la curva de oferta de forma didáctica, se procede a computar su gráfica a través de la declaración de las funciones matemáticas antes explicadas.
+
+```{r}
+
+##############################
+##############################
+#### Curva de Oferta en R ####
+##############################
+##############################
+
+
+# Paquetes
+library(ggplot2)
+library(tibble)
+
+# Curva de oferta clásica (convexa y creciente)
+S <- function(q) 2 + 0.6 * q + 0.05 * q^2  
+# Rango de cantidades
+q <- seq(0, 20, length.out = 200)
+df <- tibble(q = q, p = S(q))
+
+# Nivel de precio
+P1 <- 10
+
+# Intersección Q1 (calculada numéricamente ya que no es un valor entero exacto)
+Q1 <- uniroot(function(x) S(x) - P1, lower = 0, upper = 20)$root
+punto <- tibble(q = Q1, p = P1)
+
+# Datos para líneas punteadas (solo dos segmentos: horizontal y vertical)
+lineas <- tibble(
+  q = c(0, Q1),
+  p = c(P1, 0),
+  qend = c(Q1, Q1),
+  pend = c(P1, P1)
+)
+
+# Gráfico
+g <- ggplot(df, aes(q, p)) +
+  geom_line(linewidth = 1.1, color = "firebrick") +
+  geom_segment(data = lineas, aes(x = q, y = p, xend = qend, yend = pend),
+               linetype = "dotted", linewidth = 0.6) +
+  geom_point(data = punto, aes(q, p), size = 2) +
+  annotate("text", x = 0.7, y = P1 + 0.3, label = "P1") +
+  annotate("text", x = Q1 + 0.2, y = -0.4, label = "Q1") +
+  labs(title = "Curva de Oferta Clásica",
+       x = "Cantidad", 
+       y = "Precio") +
+  coord_cartesian(xlim = c(0, 20), ylim = c(-1, 12)) +
+  theme_bw(base_size = 12)
+
+g
+
+# Exportar a formato PNG
+ggsave("curva_oferta.png", g, width = 6, height = 4, dpi = 300)
+
+```
+
+
+
+Es fácil comprender, de esta forma, que un aumento del Precio $(P)$ va acompañado de un aumento en la cantidad ofertada $(Q_{s})$.
+
+# Bibliografía
+
+- Pindyck, R. & Rubinfeld, D. (2009).*Microeconomía*.Séptima Edición, Pearson Educación. Madrid. [Retomado de: https://danielmorochoruiz.wordpress.com/wp-content/uploads/2017/01/microeconomia_-_pyndick.pdf]
+
+- Parkin,M. & Loría, E.(2010).*Microeconomía. Versión para Latinoamérica*.Novena edición, Pearson Educación. México. [Retomado de: https://gc.scalahed.com/recursos/files/r161r/w25616w/Microeconomia.%20Novena%20edicion.pdf]
+
+- Case, K. et al.(2012).*Principios de Microeconomía*. Décima edición, Pearson Educación, México. [Retomado de: https://cdn.cienciapolitica.usac.glifos.net/digital/e13.pdf]
+
+
