@@ -1,0 +1,265 @@
+---
+title: 'Microeconomía con R: Teoría Tradicional de la Demanda del Consumidor. Enfoque Cardinal'
+author: "Raymundo Velázquez Díaz"
+date: "2025-09-18"
+output: pdf_document
+---
+# 1. Introducción
+
+La teoría de la demanda tradicional inicia analizando el comportamiento del consumidor, dado que la demanda de un mercado es la suma de todas las demandas de los consumidores. Respecto a los individuos, se asume que estos son racionales pues dado un ingreso y un precio de mercado, el gasto busca satisfacer la satisfacción más alta posible para él.
+
+Esto se conoce como el *axioma de maximización de la utilidad*. Sin embargo, ¿Cómo medimos la utilidad de un individuo? Existe una rama (**escuela cardinalista**) que indica que la utilidad puede ser medida en términos monetarios, mientras que otra (**escuela ordinalista**) indica que no puede ser medida pero es una magnitud ordinal y se pueden dar un orden a las preferencias, de ahí que exista el *enfoque de curvas de indiferencia* y la *hipótesis de preferencias reveladas*.
+
+A continuación lo analizamos.
+
+# 2. Teoría Cardinal de la Utilidad
+
+Parte de los siguientes supuestos:
+
+- **Racionalidad.** El consumidor es racional. Intenta maximizar su utilidad sujeto a un ingreso dado.
+
+- **Utilidad Cardinal.** La utilidad de cada bien es medible. La medida más conveniente es lo monetario.
+
+- **Utilidad Marginal Constante.** La característica esencial de una unidad estandar de medida es que esta es constante. Si la utilidad marginal de dinero cambia con un incremento del ingreso la medida de utilidad incrementa en la misma magnitud.
+
+- **Disminución de la Utilidad Marginal.** La utilidad marginal que genera un bien tiende a disminuir a medida que se consumen más cantidades del bien, esto da pie al *axioma de la utilidad marginal decreciente*.
+
+- La utilidad total de una canasta de bienes depende de la cantidad consumida. Si se tienen $n$ bienes en una canasta con la cantidades $x_{1}, x_{2},...,x_{n}$, la Utilidad total será la siguiente:
+
+$$
+U = f(x_{1},x_{2},...,x_{n}) 
+$$
+
+## 2.1. Equilibrio del Consumidor.
+
+El equilibrio existe cuando la utilidad marginal del bien $x$ es igual a su precio de mercado $(P_{x})$. Es decir:
+
+$$
+MU_{x}=P_{x}
+$$
+Si la utilidad marginal es mayor que el precio, el consumo puede incrementar su bienestar comprando más unidades de $x$. De igual forma, si la utilidad marginal es menor al precio de mercado el consumo puede incrementar la satisfacción total a través de disminuir la cantidad demandada de $x$ y manteniendo mayor disponibilidad del ingreso.
+
+Entonces la maximización de la utilidad se da cuando $MU_{x}=P_{x}$.
+
+
+Si existen más bienes en la canasta de bienes, la condición de equilibrio del consumidor se da cuando la tasa de utilidad marginal individual para cada bien es igual a sus precios.
+
+$$
+\frac{MU_{x}}{P_{x}} = \frac{MU_{y}}{P_{y}} = ... = \frac{MU_{n}}{P_{n}}
+$$
+La función de utilidad es la siguiente:
+
+$$
+U = f(q_{x})
+$$
+Donde la utilidad es medida en términos monetarios. Si el consumidor compra $q_{x}$, su gasto será $q_{x}P_{x}$. Dado que el consumidor busca maximizar la diferencia entre la utilidad y su gasto, tenemos.
+$$
+U - P_{x}q_x{}
+$$
+La condición necesaria para la maximización es que la derivada parcial de la función con respecto a $q_{x}$ sea igual a cero.
+
+$$
+\frac{\partial U}{\partial q_{x}} - \frac{\partial (P_{x}q_{x})}{\partial q_{x}} = 0
+$$
+Reordenando la ecuación tenemos
+
+$$
+\frac{\partial U}{\partial q_{x}} = P_{x}
+$$
+A partir del *axioma de la utilidad marginal decreciente* se puede derivar la demanda. La utilidad marginal de un bien $x$ puede ser descrito como una línea negativa pues geometrícamente la utilidad marginal de $x$ es la pendiente de la función total de utilidad $U = f(q_{x})$.
+
+La utilidad total incrementa pero a una tasa decreciente y comienza a disminuir hasta llegar al punto donde $x$ se maximiza.
+
+
+## 2.2 Gráfico en R
+
+Para generar el gráfico realizaremos los siguientes pasos en R.
+
+```{r}
+# ---- Paquetes ----
+pkgs <- c("ggplot2","dplyr","patchwork")
+to_install <- setdiff(pkgs, rownames(installed.packages()))
+if(length(to_install)) install.packages(to_install)
+lapply(pkgs, library, character.only = TRUE)
+
+# ---- Modelo simple de utilidad ----
+# U(q) = a q - (b/2) q^2  ->  MU(q) = a - b q
+a <- 10                  # MU inicial en q=0
+b <- 2                   # velocidad a la que cae la MU
+U  <- function(q) a*q - 0.5*b*q^2
+MU <- function(q) a - b*q
+
+x_star <- a/b            # donde MU=0 y U(q) es máxima
+q_max  <- 1.6*x_star     # límite del eje horizontal
+
+df <- tibble(q = seq(0, q_max, length.out = 400),
+             TU = U(q),
+             MU = MU(q))
+
+# Pequeños segmentos "tangentes" a U(q) en puntos cercanos a x*
+tangent_segment <- function(q0, L = 1.2){
+  m  <- MU(q0); y0 <- U(q0)
+  x1 <- q0 - L/2; x2 <- q0 + L/2
+  y1 <- y0 + m*(x1 - q0); y2 <- y0 + m*(x2 - q0)
+  tibble(x = x1, xend = x2, y = y1, yend = y2)
+}
+seg1 <- tangent_segment(0.6*x_star)
+seg2 <- tangent_segment(1.2*x_star)
+
+# ---- Figura 1: Utilidad Total ----
+g1 <- ggplot(df, aes(q, TU)) +
+  geom_line(linewidth = 1.2,color = "firebrick") +
+  geom_segment(data = seg1, aes(x, y, xend = xend, yend = yend),
+               inherit.aes = FALSE) +
+  geom_segment(data = seg2, aes(x, y, xend = xend, yend = yend),
+               inherit.aes = FALSE) +
+  geom_vline(xintercept = x_star, linetype = "dashed") +
+  annotate("text", x = 0.92*q_max, y = 0.8*max(df$TU), label = "TU") +
+  labs(
+    title = "Figura 1. Utilidad Total",
+    x = expression(q[x]), y = expression(U[x])) +
+  theme_bw()
+
+# ---- Figura 2: Utilidad Marginal ----
+g2 <- ggplot(df, aes(q, MU)) +
+  geom_hline(yintercept = 0) +
+  geom_line(linewidth = 1.2, color = "blue") +
+  geom_point(aes(x = x_star, y = 0), size = 2) +
+  labs(
+    title = "Figura 2. Utilidad Marginal",
+    x = expression(q[x]), y = expression(MU[x])) +
+  theme_bw()
+
+# Mostrar lado a lado (como en el libro)
+g1
+g2
+
+```
+
+
+```{r}
+# Exportar a formato PNG
+ggsave("figura1.UtilidadTotal.png", g1, width = 6,height = 4,dpi = 300)
+ggsave("figura2.UtilidadMargi.png", g2, width = 6,height = 4,dpi = 300)
+
+```
+
+
+De conformidad con los postulados de la utilidad marginal, la utilidad de $x$ desciende continuamente y se vuelve negativa después de cierta cantidad. Entonces, si la utilidad marginal es medida en unidades monetarias la curva de demanda para $x$ es idéntica al segmento positivo de la curva de utilidad marginal.
+
+Ahora, dado que para $x_{1}$ la utilidad marginal es $MU_{1}$, por definición esto será igual a $P_{1}.
+
+```{r}
+# ---- Paquetes ----
+if (!require(ggplot2)) install.packages("ggplot2"); library(ggplot2)
+if (!require(dplyr))   install.packages("dplyr");   library(dplyr)
+
+# ---- Especificación simple de la función de Utilidad Marginal ----
+# MU(q) = a - b q   (recta decreciente)
+a <- 10
+b <- 2
+MU <- function(q) a - b*q
+
+x_star <- a/b                 # donde MU = 0
+q_max  <- 1.2*x_star          # para extender un poco el eje x
+
+# Puntos "discretos" x1, x2, x3
+x1 <- 0.25*x_star
+x2 <- 0.50*x_star
+x3 <- 0.75*x_star
+
+mu1 <- MU(x1); mu2 <- MU(x2); mu3 <- MU(x3)
+
+
+# Verticales recortadas: de (xi, 0) a (xi, mui)
+vshort <- tibble::tibble(
+  x  = c(x1, x2, x3),
+  y0 = 0,
+  y1 = c(mu1, mu2, mu3)
+)
+
+# Datos para la línea MU
+df_mu <- tibble::tibble(q = seq(0, q_max, length.out = 400),
+                        MU = MU(q))
+
+# Rectángulos (bloques) bajo la MU usando el nivel en x1, x2, x3
+rects <- tibble::tibble(
+  xmin = c(0,  x1,  x2),
+  xmax = c(x1, x2,  x3),
+  ymin = 0,
+  ymax = c(mu1, mu2, mu3)
+)
+
+# Segmentos punteados horizontales hasta el punto de la MU
+dashes <- tibble::tibble(
+  y    = c(mu1, mu2, mu3),
+  xend = c(x1,  x2,  x3)
+)
+
+# ---- Figura 3: UM con bloques y líneas punteadas ----
+g3 <- ggplot(df_mu, aes(q, MU)) +
+  geom_hline(yintercept = 0, linewidth = 0.5) +
+  geom_line(linewidth = 1.2, color = "blue") +
+  geom_rect(data = rects, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            inherit.aes = FALSE, fill = NA, color = "grey30") +
+  geom_segment(data = dashes, aes(x = 0, xend = xend, y = y, yend = y),
+               inherit.aes = FALSE, linetype = "dashed") +
+  # verticales RECORTADAS en x1,x2,x3
+  geom_segment(data = vshort,
+               aes(x = x, xend = x, y = y0, yend = y1),
+               inherit.aes = FALSE, color = "grey40") +
+  # solo esta puede quedar completa
+  geom_vline(xintercept = x_star, linetype = "dashed", color = "grey50") +
+  labs(title = "Figura 3. Utilidad marginal con unidades discretas",
+       x = expression(q[x]), y = expression(MU[x])) +
+  theme_bw()
+
+g3
+
+# ---- Figura 4: Curva de demanda (P = MU en el tramo positivo) ----
+# (Usamos solo el tramo donde UM es mayor que cero)
+df_dem <- dplyr::filter(df_mu, q <= x_star)
+
+g4 <- ggplot(dplyr::filter(df_mu, q <= x_star), aes(q, MU)) +
+  geom_hline(yintercept = 0, linewidth = 0.5) +
+  geom_line(linewidth = 1.2, color = "green3") +
+  geom_rect(data = rects, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            inherit.aes = FALSE, fill = NA, color = "grey30") +
+  geom_segment(data = dashes, aes(x = 0, xend = xend, y = y, yend = y),
+               inherit.aes = FALSE, linetype = "dashed") +
+  # verticales RECORTADAS
+  geom_segment(data = vshort,
+               aes(x = x, xend = x, y = y0, yend = y1),
+               inherit.aes = FALSE, color = "grey40") +
+  labs(title = "Figura 4. Curva de demanda (P = UM)",
+       x = expression(q[x]), y = expression(P[x])) +
+  theme_bw()
+
+g4
+
+```
+
+```{r}
+# Exportar a formato PNG
+ggsave("figura3.UtilidadMargDiscr.png", g3, width = 6,height = 4,dpi = 300)
+ggsave("figura4.CurvaDemanda.png", g4, width = 6,height = 4,dpi = 300)
+```
+
+
+
+# 3. Críticas al Enfoque Cardinalista.
+
+Algunas de las críticas realizadas a este enfoque se pueden resumir en los siguientes puntos:
+
+- No se puede medir la utilidad mediante números, ya que las preferencias de cada persona son distintas entre sí, en este sentido, no  existe regla de comparación entre individuos.
+
+- El dinero como medidor de la utilidad exige que exista una utilidad constante, es decir, que con cada aumento en el ingreso exista un aumento de la misma magnitud en la utilidad. Sin embargo, esto es relativo pues cuando existen individuos con bajos niveles de ingreso un aumento en el ingreso de una unidad puede generar mayor utilidad que algún individuo con niveles de ingreso alto.
+
+- La suma de las utilidades no advierte la existencia de bienes sustitutos o complementarios, por ello no se puede distinguir si la suma de utilidades de una canasta de bienes de verdad es la más óptima, por ejemplo, si el café nos da una utilidad y el pan nos da otra, no podemos distinguir que, si combinamos ambas, la suma de utilidades puede ser menor a la potencialización de la combinación de los bienes. Pasar utilidades individuales a demnada de mercado exige supuestos que rara vez se cumplen.
+
+Por ello, este enfoque se considera poco realista con nulas aplicaciones empíricas si lo comparamos con el enfoque ordinal enfocado en las elecciones del consumidor según sus preferencias.
+
+
+# Bibliografía
+
+- Koutsoyiannis, A.(1979). *Modern Microeconomics*. Second edition. Mcmillan Education, EUA. [Retomado de: https://ucanapplym.s3.ap-south-1.amazonaws.com/RGU/notifications/E_learning/study_online/A_Koutsoyiannis_Modern_Microeconomics_Se.pdf ]
