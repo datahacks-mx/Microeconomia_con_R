@@ -1,0 +1,399 @@
+---
+title: 'Microeconomía en R: Equilibrio de Mercado'
+author: "Raymundo Velázquez Díaz"
+date: "2025-10-05"
+output: pdf_document
+---
+# Introducción
+
+El equilibrio del mercado se da cuando la curva de oferta y de demanda se cortan en el mismo precio y cantidad. Es decir, en el precio $P_e$ la cantidad ofrecida ($Q_s$) y demandada ($Q_d$) son exactamente iguales ($Q_e$).
+
+En un libre mercado, el **mecanismo del mercado** es la tendencia del precio a variar hasta que la cantidad ofrecida y la demandada son iguales. En este punto, no hay ni exceso de demanda ni exceso de oferta, no hay presiones para que el precio siga variando.
+
+Aunque la oferta y la demanda pueden no estar en equilibrio siempre, algunos mercados pueden no vaciarse rápidamente cuando las circunstancias cambian de forma repentina pero los mercados tienen a equilibrarse.
+
+Para comprender este fenómeno, usaremos R para computarizar las curvas de oferta y demanda y los efectos surgidos cuando existe alguna perturbación tanto por el lado de la oferta como de la demanda.
+
+# Ejercicio.
+
+# Equilibrio del Libre Mercado
+
+Suponga que para el mercado de altavoces se conoce que las curvas de oferta y de demanda son las siguientes:
+
+- Oferta. $Q_s = 3p - 25$
+
+- Demanda. $Q_d = 350 - 2p$
+
+1. Calcule el precio y la cantidad de equilibrio para el mercado.
+
+Es importante mencionar que el equilibrio de mercado es cuando $Oferta = Demanda$, procedemos a realizar lo correspondiente en R.
+
+```{r}
+# ======================================================
+# Ejercicio: Curvas de Oferta y Demanda con Punto de Equilibrio
+# ======================================================
+
+# 1. Definir funciones de oferta y demanda
+oferta <- function(p) 3 * p - 25
+demanda <- function(p) 350 - 2 * p
+
+# 2. Calcular valores
+p <- seq(0, 100, by = 1)
+q_oferta <- oferta(p)
+q_demanda <- demanda(p)
+
+# 3. Crear data frame
+mercado <- data.frame(
+  Precio = p,
+  Oferta = q_oferta,
+  Demanda = q_demanda
+)
+```
+
+Para derivar los puntos de equilibrio, tenemos que usar álgebra:
+
+$Oferta = Demanda$
+
+$3p - 25 = 350 - 2p$
+
+Despejamos $p$
+
+$3p + 2p = 350 + 25$
+
+$5p = 375$
+
+$p = 375/5$
+
+$p_e = 75$
+
+Una vez obtenido $p_e$, sustituimos en cualquiera de las dos ecuaciones, en este caso lo haremos para la demanda y la oferta, para visualizar que es el mismo resultado de $q$
+
+- Oferta:
+
+$Q_s = 3p - 25$
+
+$Q_s = 3(75) - 25$
+
+$Q_s = 225 - 25$
+
+$Q_s = 200$
+
+- Demanda
+
+$Q_d = 350 - 2p$
+
+$Q_d = 350 - 2(75)$
+
+$Q_d = 350 - 150$
+
+$Q_d = 200$
+
+Concluimos que en equilibrio $Q_e = 200$.
+
+De igual forma, los datos obtenidos en el data frame son los siguientes:
+
+```{r}
+# Imprimir las primeras 5 filas del data frame
+head(mercado)
+# Imprimir las últimas 5 filas del data frame
+tail(mercado)
+# Imprimir la fila 76 (debido a que hay encabezados, es que se usa P + 1)
+mercado[76,]
+```
+
+# Gráfica Equilibrio
+ 
+ Para realizar la gráfica usaremos la librería "ggplot2" y será en forma de gráfico de dispersión, pues se estarán gráficando las coordenadas (P,Q).
+ 
+```{r}
+# install.packages("ggplot2")
+library(ggplot2)
+
+# 4. Calcular el equilibrio
+p_eq <- 75
+q_eq <- oferta(p_eq)
+
+# 5. Graficar con ggplot2
+# 5.1 Curva de Oferta
+ggplot() +
+  geom_line(data = mercado, aes(x = Oferta, y = Precio, color = "Oferta"), linewidth = 1.1) +
+  geom_point(data = mercado, aes(x = Oferta, y = Precio, color = "Oferta"), size = 1.5) +
+    # Punto de equilibrio
+  geom_point(aes(x = q_eq, y = p_eq), color = "black", size = 3.5) +
+  geom_vline(aes(xintercept = q_eq), linetype = "dashed", color = "gray40") +
+  geom_hline(aes(yintercept = p_eq), linetype = "dashed", color = "gray40") +
+  geom_text(
+    aes(x = q_eq + 10, y = p_eq + 2,
+        label = paste0("Eq. (", q_eq, ", ", p_eq, ")")),
+    color = "black", size = 4, hjust = 0
+  ) +
+  # Personalización del gráfico
+  labs(
+    title = "Curva de Oferta",
+    x = "Cantidad (q)",
+    y = "Precio (p)",
+    color = "Curva"
+  ) +
+  scale_color_manual(values = c("Oferta" = "red")) +
+  theme_bw(base_size = 13)
+
+
+```
+ 
+```{r}
+# 5.2 Curva de Demanda
+ggplot() +
+  geom_line(data = mercado, aes(x = Demanda, y = Precio, color = "Demanda"), linewidth = 1.1) +
+  geom_point(data = mercado, aes(x = Demanda, y = Precio, color = "Demanda"), size = 1.5) +
+  # Punto de equilibrio
+  geom_point(aes(x = q_eq, y = p_eq), color = "black", size = 3.5) +
+  geom_vline(aes(xintercept = q_eq), linetype = "dashed", color = "gray40") +
+  geom_hline(aes(yintercept = p_eq), linetype = "dashed", color = "gray40") +
+  geom_text(
+    aes(x = q_eq + 10, y = p_eq + 2,
+        label = paste0("Eq. (", q_eq, ", ", p_eq, ")")),
+    color = "black", size = 4, hjust = 0
+  ) +
+  # Personalización del gráfico
+  labs(
+    title = "Curva de Demanda",
+    x = "Cantidad (q)",
+    y = "Precio (p)",
+    color = "Curva"
+  ) +
+  scale_color_manual(values = c("Demanda" = "blue")) +
+  theme_bw(base_size = 13)
+
+
+```
+
+```{r}
+# 5.3 Equilibrio del Mercado
+
+ggplot() +
+  # Curva de oferta
+  geom_line(data = mercado, aes(x = Oferta, y = Precio, color = "Oferta"), linewidth = 1.1) +
+  geom_point(data = mercado, aes(x = Oferta, y = Precio, color = "Oferta"), size = 1.5) +
+  
+  # Curva de demanda
+  geom_line(data = mercado, aes(x = Demanda, y = Precio, color = "Demanda"), linewidth = 1.1) +
+  geom_point(data = mercado, aes(x = Demanda, y = Precio, color = "Demanda"), size = 1.5) +
+  
+  # Punto de equilibrio
+  geom_point(aes(x = q_eq, y = p_eq), color = "black", size = 3.5) +
+  geom_vline(aes(xintercept = q_eq), linetype = "dashed", color = "gray40") +
+  geom_hline(aes(yintercept = p_eq), linetype = "dashed", color = "gray40") +
+  geom_text(
+    aes(x = q_eq + 10, y = p_eq + 2,
+        label = paste0("Equilibrio (", q_eq, ", ", p_eq, ")")),
+    color = "black", size = 4, hjust = 0
+  ) +
+  
+  # Personalización del gráfico
+  labs(
+    title = "Curvas de Oferta y Demanda",
+    subtitle = "Con punto de equilibrio (p*, q*)",
+    x = "Cantidad (q)",
+    y = "Precio (p)",
+    color = "Curva"
+  ) +
+  scale_color_manual(values = c("Oferta" = "red", "Demanda" = "blue")) +
+  theme_bw(base_size = 13)
+
+
+```
+
+# Perturbaciones al equilibrio
+
+En los mercados ocurren fenómenos que perturban el equilibrio, estos pueden ser por el lado de la oferta o de la demanda, generalmente se le conocen como choques o "shocks".
+
+Pueden ser internos o externos, aquí hay algunos ejemplos:
+
+- Por el lado de la demanda.
+  - Internos:
+    - 1. Innovaciones tecnológicas.
+    - 2. Cambio de las preferencias o hábitos.
+    - 3. Cambio en las expectativas.
+  - Externos:
+    - 1. Variación en el ingreso disponible.
+    - 2. Factores macroeconómicos.
+    - 3. Eventos sociales, políticos o naturales.
+    
+- Por el lado de la oferta.
+  - Internos:
+    - 1. Costos de producción.
+    - 2. Eficiencia técnica de los factores de producción.
+    - 3. Innovaciones tecnológicas.
+  - Externos:
+    - 1. Variaciones del precio de insumos.
+    - 2. Afectaciones a las cadenas de suministro.
+    - 3. Políticas comerciales, fiscales o gubernamentales.
+    
+# Desplazamiento de la Demanda.
+
+Supongamos que, partiendo del equilibrio de mercado actual, 3 de cada 10 consumidores piensan que existirá un descuento por una época llamada "Buen Fin" que aún no comienza pero esta próxima a realizarse. Existe un **cambio de expectativas**.
+
+En este sentido, posponen su compra para esperar el descuento por lo que la demanda actual se reduce en 30%
+
+¿Qué pasa con la demanda?
+
+Sea la función de demanda $Q_d = 350 - 2p$, si se reduce en 30%, la nueva función sería la siguiente:
+
+$Q_d1 = (1-0.30)350 - 2p$
+
+$Q_d1 = 245 - 2p$
+
+Con la demanda reducida el nuevo equilibrio sería:
+
+$3p - 25 = 245 - 2p$
+
+Después de despejar P y sustituir en las funciones para Q, tenemos que los puntos de equilibrio para la demanda reducida son:
+
+$P_dr = 54$
+$Q_dr = 137$
+
+# Gráfico Demanda Reducida
+
+Para poder visualizar el efecto de la reducción de demanda, deberemos gráficar el equilibrio original adicionando la nueva curva de demanda ($Q_D1$) y el nuevo equilibrio.
+
+```{r}
+# ======================================================
+# Desplazamiento de la Demanda por Expectativas (30%)
+# Oferta:  qO = 3p - 25
+# Demanda: qD0 = 350 - 2p  (original)
+# Demanda actual con expectativas: qD1 = (1 - s)*350 - 2p, s = 0.30
+# ======================================================
+
+library(ggplot2)
+
+# Parámetros
+s <- 0.30              # porcentaje de consumidores que posponen compra
+a_d0 <- 350            # intercepto demanda original
+b_d  <- 2              # pendiente (abs) demanda
+a_s  <- -25            # intercepto oferta (cuando p=0, q=-25)
+b_s  <- 3              # pendiente oferta
+
+# Funciones
+q_oferta  <- function(p) b_s*p + a_s
+q_demanda0 <- function(p) a_d0 - b_d*p
+q_demanda1 <- function(p) (1 - s)*a_d0 - b_d*p
+
+# Rango de precios para graficar
+p <- seq(0, 100, by = 1)
+
+# Data frame para ggplot
+df <- data.frame(
+  Precio   = p,
+  Oferta   = q_oferta(p),
+  Demanda0 = q_demanda0(p),
+  Demanda1 = q_demanda1(p)
+)
+
+# Equilibrio original
+p_eq0 <- (a_d0 - a_s) / (b_s + b_d)  # (350 - (-25)) / (3 + 2) = 75
+q_eq0 <- q_oferta(p_eq0)             # 200
+
+# Nuevo equilibrio con demanda reducida
+a_d1 <- (1 - s)*a_d0                 # 245
+p_eq1 <- (a_d1 - a_s) / (b_s + b_d)  # (245 - (-25)) / 5 = 54
+q_eq1 <- q_oferta(p_eq1)             # 137
+
+# Preparar datos en formato "largo" para graficar 3 curvas en un solo panel
+df_long <- rbind(
+  data.frame(Cantidad = df$Oferta,   Precio = df$Precio, Curva = "Oferta"),
+  data.frame(Cantidad = df$Demanda0, Precio = df$Precio, Curva = "Demanda (D0)"),
+  data.frame(Cantidad = df$Demanda1, Precio = df$Precio, Curva = "Demanda Reducida (D1)")
+)
+
+head(df_long)
+tail(df_long)
+```
+
+
+
+```{r}
+
+
+ggplot(df_long, aes(x = Cantidad, y = Precio, color = Curva)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 0.9, alpha = 0.6) +
+  # Puntos y guías de equilibrio original
+  geom_point(aes(x = q_eq0, y = p_eq0), color = "black", size = 3) +
+  geom_vline(xintercept = q_eq0, linetype = "dashed", color = "gray50") +
+  geom_hline(yintercept = p_eq0, linetype = "dashed", color = "gray50") +
+  annotate("text", x = q_eq0, y = p_eq0 + 3, label = sprintf("E0 (q=%d, p=%d)", round(q_eq0), round(p_eq0)),
+           size = 4, hjust = 0.5) +
+  # Puntos y guías de nuevo equilibrio
+  geom_point(aes(x = q_eq1, y = p_eq1), color = "black", size = 3) +
+  geom_vline(xintercept = q_eq1, linetype = "dashed", color = "gray30") +
+  geom_hline(yintercept = p_eq1, linetype = "dashed", color = "gray30") +
+  annotate("text", x = q_eq1, y = p_eq1 - 5, label = sprintf("E1 (q=%d, p=%d)", round(q_eq1), round(p_eq1)),
+           size = 4, hjust = 0.5) +
+  labs(title = "Desplazamiento de la Demanda",
+       subtitle = "D0: Demanda original | D1: Demanda reducida | Oferta constante",
+       x = "Cantidad (q)", y = "Precio (p)", color = "Curvas") +
+
+  #  Aquí se asignan los colores deseados:
+  scale_color_manual(values = c(
+    "Oferta" = "red",                  # Curva de oferta → roja
+    "Demanda (D0)" = "blue",           # Demanda original → azul
+    "Demanda Reducida (D1)" = "green"  # Demanda reducida → verde
+  )) +
+
+  theme_bw(base_size = 13)
+
+
+```
+
+Los equilibrios son los siguientes:
+
+```{r}
+# Mostrar resultados en consola
+cat("Equilibrio original (D0 & Oferta):  p =", round(p_eq0, 2), ", q =", round(q_eq0, 2), "\n")
+cat("Nuevo equilibrio (D1 & Oferta):     p =", round(p_eq1, 2), ", q =", round(q_eq1, 2), "\n")
+
+```
+
+En este ejercicio, el precio disminuyó de 75 a 54 unidades monetarias, es decir, existió una disminución del 38.8% en el precio debido al cambio de expectativas en los consumidores.
+
+Particularmente, se materializó la expectativa del consumidor y podrán irse con la idea de que siempre tuvieron la "idea correcta".
+
+¡Que divertidos son los mercados!
+
+# Conclusiones.
+
+En los mercados, tanto la curva de oferta se desplazan de vez en cuando y para averiguar los efectos de estas variaciones pueden utilizarse las curvas de oferta y de demanda de manera gráfica. En general, el precio y la cantidad varían dependiendo tanto de cuánto se desplacen las curvas de oferta y de demanda como de la forma de esas curvas.
+
+Para predecir la magnitud y el sentido de esas variaciones debemos ser capaces de caracterizar cuantitativamente la dependencia de la oferta y la demanda del precio (y otras variables).
+
+En este ejemplo, el resultado ilustra con claridad cómo las expectativas de los consumidores pueden generar efectos autorrealizables en los mercados. La sola anticipación de un descuento futuro llevó a una contracción inmediata de la demanda, desplazando la curva hacia la izquierda y provocando una reducción efectiva en el precio de equilibrio del 38.8%.
+
+Paradójicamente, el comportamiento colectivo de los consumidores terminó validando sus propias expectativas: al esperar precios más bajos y reducir sus compras presentes, inducen una presión a la baja en el precio actual, confirmando las razones que los motivó a esperar.
+
+Este tipo de dinámicas muestra que los mercados no siempre se mueven únicamente por fundamentos objetivos, sino también por percepciones, confianza y estrategias de comportamiento.
+
+Por eso, una verdad incómoda para los economistas es que los mercados son sistemas complejos donde las expectativas pueden modificar la realidad misma que intentan anticipar.
+
+# Bibliografía
+
+- Pindyck, R. & Rubinfeld, D. (2009). *MICROECONOMIA*. Séptima Edición. PEARSON EDUCACIÓN: Madrid. [Retomado de: https://danielmorochoruiz.wordpress.com/wp-content/uploads/2017/01/microeconomia_-_pyndick.pdf ]
+
+# Anexos.
+## Datos Mercado
+
+```{r}
+print(mercado)
+```
+
+## Datos Demanda Reducida
+
+```{r}
+print(df)
+```
+
+## Data Frame Formato Long
+
+```{r}
+print(df_long)
+```
+
